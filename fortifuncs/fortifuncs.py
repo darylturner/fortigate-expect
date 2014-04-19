@@ -23,7 +23,20 @@ class FortiGate():
 	
 	def connect(self):
 		print("pexpect spawn code goes here")
+		print("ssh to %s@%s" % self.user, self.ip)
 
 	
 	def disconnect(self):
 		print("pexpect close goes here")
+
+	
+	def add_policy(self):
+		pass
+
+
+	def add_address(self):
+		pass
+
+
+	def add_vip(self):
+		pass
