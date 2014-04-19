@@ -1,5 +1,6 @@
 #!/usr/bin/python
 from getpass import getpass
+import pexpect
 import os
 
 
@@ -18,3 +19,11 @@ class FortiGate():
 	
 	def opts(self):
 		print(self.ip, self.user, self.passw)
+
+	
+	def connect(self):
+		print("pexpect spawn code goes here")
+
+	
+	def disconnect(self):
+		print("pexpect close goes here")
