@@ -3,7 +3,7 @@ from getpass import getpass
 import os
 
 
-class FortiGate()
+class FortiGate():
 	ip = '192.168.1.1'
 	user = None
 	passw = None
@@ -16,5 +16,5 @@ class FortiGate()
 			self.user = os.getlogin()
 
 	
-	def print(self):
-		print(ip, user, passw)
+	def opts(self):
+		print(self.ip, self.user, self.passw)
