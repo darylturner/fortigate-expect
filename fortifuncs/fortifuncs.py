@@ -28,22 +28,26 @@ class FortiGate():
     def connect(self):
         print("ssh to {}@{}".format(self.user, self.ip))
         self.client = pexpect.spawn('ssh {}@{}'.format(self.user, self.ip))
-        ans = self.client.expect([pexpect.TIMEOUT, '# '], timeout=30)
+        ans = self.client.expect([pexpect.TIMEOUT, '# '], timeout=5)
         if ans == 0:
-            print("ssh has timed out: {}, {}".format(self.client.before, self.client.after))
+            print("connection has timed out")
         elif ans == 1:
-            print("ssh connected")
+            print("connected")
             self.connected = True
 
     def disconnect(self):
-        print("pexpect close goes here")
-        self.connected = False
+        if self.connected:
+            print("closing session")
+            self.client.close()
+            self.connected = False
+        else:
+            print("not connected")
 
-    def add_interface(self, name, vlan, phy, ip, vdom):
+    def add_interface(self, name, vlan, phy, ip):
         pass
 
-    def add_policy(self, srcintf, dstintf, srcaddr, dstaddr, nat, natpool,
-                   action='permit', schedule='always'):
+    def add_policy(self, action, srcintf, dstintf, srcaddr, dstaddr, service,
+                   nat=False, natpool=None, schedule='always'):
         pass
 
     def add_address(self, name, subnet):
