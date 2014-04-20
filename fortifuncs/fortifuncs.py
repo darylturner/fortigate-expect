@@ -5,12 +5,12 @@ import os
 
 
 class FortiGate():
-    '''Fancy wrapper to pexpect for FortiGate firewalls'''
+    '''FortiGate framework to pexpect.'''
     connected = False
+    vdom = None
 
-    def __init__(self, ip, user=None, passw=None, vdom=None):
+    def __init__(self, ip, user=None, passw=None):
         self.ip = ip
-        self.vdom = vdom
 
         if passw is None:
             self.passw = getpass()
@@ -54,4 +54,16 @@ class FortiGate():
         pass
 
     def add_vip(self, name, external, mapped):
+        pass
+
+    def edit_vdom(self, vdom):
+        self.vdom = vdom
+
+    def exit_vdom(self):
+        self.vdom = None
+
+    def edit_global(self):
+        pass
+
+    def exit_global(self):
         pass
