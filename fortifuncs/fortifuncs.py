@@ -56,14 +56,19 @@ class FortiGate():
     def add_vip(self, name, external, mapped):
         pass
 
-    def edit_vdom(self, vdom):
-        self.vdom = vdom
-
-    def exit_vdom(self):
-        self.vdom = None
-
-    def edit_global(self):
-        pass
-
-    def exit_global(self):
-        pass
+    def set_context(self, vdom):
+        if vdom is None and self.vdom is None:
+            #nothing to do
+            return
+        elif vdom is not None and self.vdom is None:
+            #edit vdom
+            pass
+        elif vdom is not None and self.vdom is not None:
+            #exit current vdom and edit new vdom
+            pass
+        elif vdom is None and self.vdom is not None:
+            #exit current vdom
+            pass
+        else:
+            #this shouldn't of happened!
+            raise
