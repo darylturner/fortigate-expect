@@ -28,13 +28,13 @@ class FortiGate():
         print(self.ip, self.user, self.passw, self.vdom)
 
     def connect(self):
-        print("ssh to {}@{}".format(self.user, self.ip))
+        print('ssh to {}@{}'.format(self.user, self.ip))
         self.client = pexpect.spawn('ssh {}@{}'.format(self.user, self.ip))
         self.client.logfile = sys.stdout
         i = self.client.expect([pexpect.TIMEOUT, 'you sure you want to continue connecting', 'password: '], timeout=5)
         prompt = self.hostname + ' # '
         if i == 0:
-            print("connection failed")
+            print('connection failed')
             self.client.close()
         elif i == 1:
             self.client.sendline('yes')
@@ -42,26 +42,26 @@ class FortiGate():
             self.client.sendline(self.passw)
             self.client.expect(prompt)
             self.connected = True
-            print("connected")
+            print('connected')
         elif i == 2:
-            print("sending password")
+            print('sending password')
             self.client.sendline(self.passw)
             i = self.client.expect([prompt, 'denied'])
             if i == 0:
                 self.connected = True
-                print("connected")
+                print('connected')
             else:
-                print("authentication failed")
+                print('authentication failed')
                 self.client.close()
 
 
     def disconnect(self):
         if self.connected:
-            print("closing session")
+            print('closing session')
             self.client.close()
             self.connected = False
         else:
-            print("not connected")
+            print('not connected')
 
     def add_interface(self, name, vlan, phy, ip):
         pass
