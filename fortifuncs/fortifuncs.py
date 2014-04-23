@@ -85,7 +85,7 @@ class FortiGate():
 
         if interface is not None:
             self.client.sendline('set associated-interface {}'.format(interface))
-            i = self.client.expect(['entry not found in datasource', self.hostname + ' \({}\) # '.format(name)])
+            i = self.client.expect(['Command fail', self.hostname + ' \({}\) # '.format(name)])
             if i == 0:
                 self.client.sendline('abort')
                 raise FortiGateCLI(self.client.before)
@@ -95,16 +95,39 @@ class FortiGate():
         return
 
 
-    def add_vip(self, name, extip, mappedip, extintf='any' extport=None, mappedport=None):
+    def add_vip(self, name, extip, mappedip, extintf='any', extport=None, mappedport=None):
         self.client.sendline('config firewall vip')
         self.client.expect(self.hostname + ' \(vip\) # ')
         self.client.sendline('edit {}'.format(name))
-        i = self.expect(['Command fail', self.hostname + ' \({}\) # '.format(name)])
+        i = self.client.expect(['Command fail', self.hostname + ' \({}\) # '.format(name)])
         if i == 0:
             raise FortiGateCLI(self.client.before)
 
         self.client.sendline('set extip {}'.format(extip))
         self.client.expect(self.hostname + ' \({}\) # '.format(name))
+        self.client.sendline('set mappedip {}'.format(mappedip))
+        self.client.expect(self.hostname + ' \({}\) # '.format(name))
+        self.client.sendline('set extintf {}'.format(extintf))
+        i = self.client.expect(['Command fail', self.hostname + ' \({}\) # '.format(name)])
+        if i == 0:
+            self.client.sendline('abort')
+            raise FortiGateCLI(self.client.before)
+
+        if extport is not None:
+            self.client.sendline('set portforward enable')
+            self.client.expect(self.hostname + ' \({}\) # '.format(name))
+            self.client.sendline('set extport {}'.format(extport))
+            self.client.expect(self.hostname + ' \({}\) # '.format(name))
+
+            if mappedport is not None:
+                self.client.sendline('set mappedport {}'.format(mappedport))
+                self.client.expect(self.hostname + ' \({}\) # '.format(name))
+
+        self.client.sendline('end')
+        i = self.client.expect(['Command fail', self.hostname + ' \({}\) # '.format(self.vdom)])
+        if i == 0:
+            raise FortiGateCLI(self.client.before)
+        return
 
 
     def set_context(self, vdom):
