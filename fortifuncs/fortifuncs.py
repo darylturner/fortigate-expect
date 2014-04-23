@@ -2,6 +2,7 @@
 from getpass import getpass
 import pexpect
 import os
+import sys
 
 
 class FortiGate():
@@ -9,8 +10,9 @@ class FortiGate():
     connected = False
     vdom = None
 
-    def __init__(self, ip, user=None, passw=None):
+    def __init__(self, ip, hostname, user=None, passw=None):
         self.ip = ip
+        self.hostname = hostname
 
         if passw is None:
             self.passw = getpass()
@@ -28,12 +30,30 @@ class FortiGate():
     def connect(self):
         print("ssh to {}@{}".format(self.user, self.ip))
         self.client = pexpect.spawn('ssh {}@{}'.format(self.user, self.ip))
-        ans = self.client.expect([pexpect.TIMEOUT, '# '], timeout=5)
-        if ans == 0:
-            print("connection has timed out")
-        elif ans == 1:
-            print("connected")
+        self.client.logfile = sys.stdout
+        i = self.client.expect([pexpect.TIMEOUT, 'you sure you want to continue connecting', 'password: '], timeout=5)
+        prompt = self.hostname + ' # '
+        if i == 0:
+            print("connection failed")
+            self.client.close()
+        elif i == 1:
+            self.client.sendline('yes')
+            self.client.expect('password: ')
+            self.client.sendline(self.passw)
+            self.client.expect(prompt)
             self.connected = True
+            print("connected")
+        elif i == 2:
+            print("sending password")
+            self.client.sendline(self.passw)
+            i = self.client.expect([prompt, 'denied'])
+            if i == 0:
+                self.connected = True
+                print("connected")
+            else:
+                print("authentication failed")
+                self.client.close()
+
 
     def disconnect(self):
         if self.connected:
@@ -58,17 +78,28 @@ class FortiGate():
 
     def set_context(self, vdom):
         if vdom is None and self.vdom is None:
-            #nothing to do
             return
         elif vdom is not None and self.vdom is None:
-            #edit vdom
-            pass
+            self.client.sendline('config vdom')
+            self.client.expect(self.hostname + ' \(vdom\) # ')
+            self.client.sendline('edit {}'.format(vdom))
+            self.client.expect(self.hostname + ' \({}\) # '.format(vdom))
+            self.vdom = vdom
+            return
         elif vdom is not None and self.vdom is not None:
-            #exit current vdom and edit new vdom
-            pass
+            self.client.sendline('end')
+            self.client.expect(self.hostname + ' # ')
+            self.vdom = None
+            self.client.sendline('config vdom')
+            self.client.expect(self.hostname + ' \(vdom\) # ')
+            self.client.sendline('edit {}'.format(vdom))
+            self.client.expect(self.hostname + ' \({}\) # '.format(vdom))
+            self.vdom = vdom
+            return
         elif vdom is None and self.vdom is not None:
-            #exit current vdom
-            pass
+            self.client.sendline('end')
+            self.client.expect(self.hostname + ' # ')
+            self.vdom = None
+            return
         else:
-            #this shouldn't of happened!
-            raise
+            raise(pexpect.EOF)
