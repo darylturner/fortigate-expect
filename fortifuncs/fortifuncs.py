@@ -27,10 +27,11 @@ class FortiGate():
     def opts(self):
         print(self.ip, self.user, self.passw, self.vdom)
 
-    def connect(self):
+    def connect(self, debug=False):
         print('ssh to {}@{}'.format(self.user, self.ip))
         self.client = pexpect.spawn('ssh {}@{}'.format(self.user, self.ip))
-        self.client.logfile = sys.stdout
+        if debug:
+            self.client.logfile = sys.stdout
         i = self.client.expect([pexpect.TIMEOUT, 'you sure you want to continue connecting', 'password: '], timeout=5)
         prompt = self.hostname + ' # '
         if i == 0:
@@ -70,8 +71,31 @@ class FortiGate():
                    nat=False, natpool=None, schedule='always'):
         pass
 
-    def add_address(self, name, subnet):
-        pass
+    def add_address(self, name, subnet, interface=None):
+        self.client.sendline('config firewall address')
+        self.client.expect(self.hostname + ' \(address\) # ')
+        self.client.sendline('edit {}'.format(name))
+        self.client.expect(self.hostname + ' \({}\) # '.format(name))
+
+        if '/' not in subnet:
+            subnet += '/32'
+        self.client.sendline('set subnet {}'.format(subnet))
+        self.client.expect(self.hostname + ' \({}\) # '.format(name))
+
+        if interface is not None:
+            self.client.sendline('set associated-interface {}'.format(interface))
+            i = self.client.expect(['entry not found in datasource', self.hostname + ' \({}\) # '.format(name)])
+            if i == 0:
+                print('requested associated-interface {} not found. aborting'.format(interface))
+                self.client.sendline('abort')
+                self.client.expect(self.hostname + ' \({}\) # '.format(self.vdom))
+                return
+
+        self.client.sendline('end')
+        self.client.expect(self.hostname + ' \({}\) # '.format(self.vdom))
+        print('added address "{}" sucessfully.'.format(name))
+        return
+
 
     def add_vip(self, name, external, mapped):
         pass
