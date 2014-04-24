@@ -37,7 +37,7 @@ class FortiGate():
 
     def connect(self, debug=False):
         self.client = pexpect.spawn('ssh {}@{}'.format(self.user, self.ip))
-        i = self.client.expect([pexpect.TIMEOUT, 'you sure you want to continue connecting', 'password: '], timeout=5)
+        i = self.client.expect([pexpect.TIMEOUT, 'continue connecting', 'password: '], timeout=5)
         if debug:
             self.client.logfile = sys.stdout
         prompt = self.hostname + ' # '
