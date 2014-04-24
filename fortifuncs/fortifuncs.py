@@ -97,9 +97,70 @@ class FortiGate():
             raise FortiGateCLI(self.client.before)
         return
 
-    def add_policy(self, action, srcintf, dstintf, srcaddr, dstaddr, service,
-                   nat=False, natpool=None, schedule='always'):
-        pass
+    def add_policy(self, action, srcintf, dstintf, srcaddr, dstaddr, service='ALL',
+                   nat=False, ippool=None, schedule='always'):
+        if action != 'accept' and action != 'deny':
+            raise InternalError('only accept and deny actions are currently supported')
+
+        self.client.sendline('config firewall policy')
+        self.client.expect(self.hostname + ' \(policy\) # ')
+        self.client.sendline('edit 0')
+        self.client.expect(self.hostname + ' \(0\) # ')
+
+        self.client.sendline('set srcintf {}'.format(srcintf))
+        i = self.client.expect(['Command fail', self.hostname + ' \(0\) # '])
+        if i == 0:
+            self.client.sendline('abort')
+            raise FortiGateCLI(self.client.before)
+        self.client.sendline('set dstintf {}'.format(dstintf))
+        i = self.client.expect(['Command fail', self.hostname + ' \(0\) # '])
+        if i == 0:
+            self.client.sendline('abort')
+            raise FortiGateCLI(self.client.before)
+
+        self.client.sendline('set srcaddr {}'.format(srcaddr))
+        i = self.client.expect(['Command fail', self.hostname + ' \(0\) # '])
+        if i == 0:
+            self.client.sendline('abort')
+            raise FortiGateCLI(self.client.before)
+        self.client.sendline('set dstaddr {}'.format(dstaddr))
+        i = self.client.expect(['Command fail', self.hostname + ' \(0\) # '])
+        if i == 0:
+            self.client.sendline('abort')
+            raise FortiGateCLI(self.client.before)
+
+        self.client.sendline('set action {}'.format(action))
+        self.client.expect(self.hostname + ' \(0\) # ')
+
+        self.client.sendline('set service {}'.format(service))
+        i = self.client.expect(['Command fail', self.hostname + ' \(0\) # '])
+        if i == 0:
+            self.client.sendline('abort')
+            raise FortiGateCLI(self.client.before)
+
+        self.client.sendline('set schedule {}'.format(schedule))
+        i = self.client.expect(['Command fail', self.hostname + ' \(0\) # '])
+        if i == 0:
+            self.client.sendline('abort')
+            raise FortiGateCLI(self.client.before)
+
+        if nat is True:
+            self.client.sendline('set nat enable')
+            self.client.expect(self.hostname + ' \(0\) # ')
+            if ippool is not None:
+                self.client.sendline('set ippool enable')
+                self.client.expect(self.hostname + ' \(0\) # ')
+                self.client.sendline('set poolname {}'.format(ippool))
+                i = self.client.expect(['Command fail', self.hostname + ' \(0\) # '])
+                if i == 0:
+                    self.client.sendline('abort')
+                    raise FortiGateCLI(self.client.before)
+
+        self.client.sendline('end')
+        i = self.client.expect(['Command fail', self.hostname + ' \({}\) # '.format(self.vdom)])
+        if i == 0:
+            raise FortiGateCLI(self.client.before)
+        return
 
     def add_address(self, name, subnet, interface=None):
         self.client.sendline('config firewall address')
