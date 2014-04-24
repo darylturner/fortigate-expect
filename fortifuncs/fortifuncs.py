@@ -1,4 +1,3 @@
-#!/usr/bin/python
 from getpass import getpass
 import pexpect
 import os
