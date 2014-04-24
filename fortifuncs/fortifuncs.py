@@ -166,7 +166,7 @@ class FortiGate():
         self.client.sendline('config firewall address')
         self.client.expect(self.hostname + ' \(address\) # ')
         self.client.sendline('edit {}'.format(name))
-        i = self.expect(['Command fail', self.hostname + ' \({}\) # '.format(name)])
+        i = self.client.expect(['Command fail', self.hostname + ' \({}\) # '.format(name)])
         if i == 0:
             raise FortiGateCLI(self.client.before)
 
