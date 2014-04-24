@@ -8,8 +8,10 @@ import sys
 class FortiGateCLI(Exception):
     pass
 
+
 class InternalError(Exception):
     pass
+
 
 class FortiGate():
     '''FortiGate framework to pexpect.'''
@@ -35,9 +37,9 @@ class FortiGate():
 
     def connect(self, debug=False):
         self.client = pexpect.spawn('ssh {}@{}'.format(self.user, self.ip))
+        i = self.client.expect([pexpect.TIMEOUT, 'you sure you want to continue connecting', 'password: '], timeout=5)
         if debug:
             self.client.logfile = sys.stdout
-        i = self.client.expect([pexpect.TIMEOUT, 'you sure you want to continue connecting', 'password: '], timeout=5)
         prompt = self.hostname + ' # '
         if i == 0:
             self.client.close()
@@ -57,14 +59,43 @@ class FortiGate():
                 self.client.close()
                 raise InternalError('authentication failed')
 
-
     def disconnect(self):
         if self.connected:
             self.client.close()
             self.connected = False
 
-    def add_interface(self, name, vlan, phy, ip):
-        pass
+    def add_interface(self, name, vlan, phy, ip, description=None):
+        if '/' not in ip:
+            raise InternalError('subnet mask missing from ip argument')
+
+        self.client.sendline('config system interface')
+        self.client.expect(self.hostname + ' \(interface\) # ')
+        self.client.sendline('edit {}'.format(name))
+        self.client.expect(self.hostname + ' \({}\) # '.format(name))
+        self.client.sendline('set vlanid {}'.format(vlan))
+        self.client.expect(self.hostname + ' \({}\) # '.format(name))
+        self.client.sendline('set ip {}'.format(ip))
+        self.client.expect(self.hostname + ' \({}\) # '.format(name))
+
+        self.client.sendline('set interface {}'.format(phy))
+        i = self.client.expect(['Command fail', self.hostname + ' \({}\) # '.format(name)])
+        if i == 0:
+            self.client.sendline('abort')
+            raise FortiGateCLI(self.client.before)
+
+        if description is not None:
+            self.client.sendline('set description {}'.format(description))
+            self.client.expect(self.hostname + ' \({}\) # '.format(name))
+
+        if self.vdom is not None:
+            self.client.sendline('set vdom {}'.format(self.vdom))
+            self.client.expect(self.hostname + ' \({}\) # '.format(name))
+
+        self.client.sendline('end')
+        i = self.client.expect(['Command fail', self.hostname + ' \({}\) # '.format(self.vdom)])
+        if i == 0:
+            raise FortiGateCLI(self.client.before)
+        return
 
     def add_policy(self, action, srcintf, dstintf, srcaddr, dstaddr, service,
                    nat=False, natpool=None, schedule='always'):
@@ -91,9 +122,10 @@ class FortiGate():
                 raise FortiGateCLI(self.client.before)
 
         self.client.sendline('end')
-        self.client.expect(self.hostname + ' \({}\) # '.format(self.vdom))
+        i = self.client.expect(['Command fail', self.hostname + ' \({}\) # '.format(self.vdom)])
+        if i == 0:
+            raise FortiGateCLI(self.client.before)
         return
-
 
     def add_vip(self, name, extip, mappedip, extintf='any', extport=None, mappedport=None):
         self.client.sendline('config firewall vip')
@@ -128,7 +160,6 @@ class FortiGate():
         if i == 0:
             raise FortiGateCLI(self.client.before)
         return
-
 
     def set_context(self, vdom):
         if vdom is None and self.vdom is None:
