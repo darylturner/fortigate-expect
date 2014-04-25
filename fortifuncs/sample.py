@@ -1,13 +1,19 @@
-#!/usr/local/bin/python3
+#!/usr/local/bin/python3.3
 import sys
 import ipaddress
 import fortifuncs
+
+
+def progress(message):
+    sys.stdout.write(message)
+    sys.stdout.flush()
+
 
 if len(sys.argv) != 4:
     print('usage: ./sample.py <network/mask> <vlan> <public>')
     sys.exit(1)
 
-#Firewall Info
+# Firewall Info
 ip = '10.0.0.1'
 hostname = 'spam'
 vdom = 'brian'
@@ -28,20 +34,18 @@ firewall = fortifuncs.FortiGate(ip, hostname)
 firewall.connect()
 print('connected')
 firewall.set_context(vdom)
-print('editing vdom')
+progress('editing vdom...')
 firewall.add_interface(name=customer_int, ip=gateway, vlan=vlan, phy='port1')
-print('added interface...')
+progress('added interface...')
 firewall.add_address(name=subnet_name, subnet=str(subnet))
-print('added address...')
+progress('added address...')
 firewall.add_vip(name=vip_name, extip=public, mappedip=webserver)
-print('added static nat...')
-
+progress('added static nat...')
 firewall.add_policy(action='accept', srcintf=customer_int, dstintf=pub_int,
                     srcaddr=subnet_name, dstaddr='all', service='HTTP HTTPS DNS SMTP',
                     nat=True)
-print('added outbound policy...')
-
+progress('added outbound policy...')
 firewall.add_policy(action='accept', srcintf=pub_int, dstintf=customer_int,
                     srcaddr='all', dstaddr=vip_name, service='HTTP HTTPS')
-print('added inbound policy...')
+progress('added inbound policy...')
 print('done!')
