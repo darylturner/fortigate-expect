@@ -17,35 +17,35 @@ No FortiManager required. All methods implemented using Pexpect <http://pexpect.
 ```python
 class FortiGate():
     def __init__(self, ip, hostname, user=None, passw=None):
-    '''Initialise object with IP and system hostname. System hostname used for expecting
-       the prompt. Optional arguments username and password will be taken from user variable 
-       and getpass() if not provided.'''
+        '''Initialise object with IP and system hostname. System hostname used for expecting
+           the prompt. Optional arguments username and password will be taken from user variable 
+           and getpass() if not provided.'''
 
     def status(self):
-    '''Prints connection information and current VDOM.'''
+        '''Prints connection information and current VDOM.'''
 
     def connect(self, debug=False):
-    '''Attempts to SSH to the FortiGate using provided credentials. Turning debug to True
-       turns on echoing FortiGate output to STDOUT.'''
+        '''Attempts to SSH to the FortiGate using provided credentials. Turning debug to True
+           turns on echoing FortiGate output to STDOUT.'''
 
     def disconnect(self):
-    '''Close SSH session.'''
+        '''Close SSH session.'''
 
     def add_interface(self, name, vlan, phy, ip, description=None):
-    '''Add new VLAN subinterface. Physical trunk port specified by 'phy' argument.'''
+        '''Add new VLAN subinterface. Physical trunk port specified by 'phy' argument.'''
 
     def add_policy(self, action, srcintf, dstintf, srcaddr, dstaddr, service='ALL',
                    nat=False, ippool=None, schedule='always'):
-    '''Add a new firewall policy.'''
+        '''Add a new firewall policy.'''
 
     def add_address(self, name, subnet, interface=None):
-    '''Add a new address. Optionally bind to interface'''
+        '''Add a new address. Optionally bind to interface'''
 
     def add_vip(self, name, extip, mappedip, extintf='any', extport=None, mappedport=None):
-    '''Add a new NAT VIP. If extport is not specified a static one-to-one NAT will be created.'''
+        '''Add a new NAT VIP. If extport is not specified a static one-to-one NAT will be created.'''
 
     def set_context(self, vdom):
-    '''Edit VDOM. Setting VDOM to None will return to global.'''
+        '''Edit VDOM. Setting VDOM to None will return to global.'''
 ```
 
 ###Example
