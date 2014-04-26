@@ -49,6 +49,12 @@ class FortiGate():
 ```
 
 ###Example
+```sh
+$ ./sample1.py 10.2.50.0/28 800 198.51.100.97
+Password: 
+connected
+editing vdom...added interface...added address...added static nat...added outbound policy...added inbound policy...done!
+```
 ```python
 #!/usr/local/bin/python3.3
 import sys
