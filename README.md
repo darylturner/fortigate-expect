@@ -3,6 +3,8 @@
 An easy to use module for automating common operations on FortiGate firewalls via SSH.
 No FortiManager required. All methods implemented using Pexpect <http://pexpect.readthedocs.org>.
 
+DEPRECATED: Please checkout https://github.com/spotify/napalm
+
 ---
 
 ###Current Features
